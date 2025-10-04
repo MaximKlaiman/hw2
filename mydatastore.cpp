@@ -11,11 +11,9 @@ MyDataStore::MyDataStore()
 
 MyDataStore::~MyDataStore()
 {
-    // free all allocated Products
     for(Product* p : products_) {
         delete p;
     }
-    // free all allocated Users
     for(User* u : users_) {
         delete u;
     }
@@ -25,7 +23,6 @@ void MyDataStore::addProduct(Product* p)
 {
     products_.push_back(p);
 
-    // index keywords
     set<string> keys = p->keywords();
     for(const string& key : keys) {
         string lowerKey = key;
@@ -38,7 +35,6 @@ void MyDataStore::addUser(User* u)
 {
     users_.push_back(u);
 
-    // initialize empty cart
     string uname = u->getName();
     transform(uname.begin(), uname.end(), uname.begin(), ::tolower);
     carts_[uname] = vector<Product*>();
@@ -50,14 +46,12 @@ vector<Product*> MyDataStore::search(vector<string>& terms, int type)
 
     if(terms.empty()) return hits;
 
-    // normalize all search terms to lowercase
     vector<string> termsLower;
     for(string t : terms) {
         transform(t.begin(), t.end(), t.begin(), ::tolower);
         termsLower.push_back(t);
     }
 
-    // OR search
     if(type == 1) {
         set<Product*> result;
         for(string t : termsLower) {
@@ -67,7 +61,6 @@ vector<Product*> MyDataStore::search(vector<string>& terms, int type)
         }
         hits.insert(hits.end(), result.begin(), result.end());
     }
-    // AND search
     else {
         set<Product*> result;
         bool first = true;
@@ -86,31 +79,30 @@ vector<Product*> MyDataStore::search(vector<string>& terms, int type)
     return hits;
 }
 
-void MyDataStore::dump(ostream& ofile)
+void MyDataStore::dump(std::ostream& ofile)
 {
-    ofile << "<products>" << endl;
-    for(Product* p : products_) {
-        p->dump(ofile);
+    ofile << "<products>" << std::endl;
+    for(size_t i = 0; i < products_.size(); i++) {
+        products_[i]->dump(ofile);
     }
-    ofile << "</products>" << endl;
+    ofile << "</products>" << std::endl;
 
-    ofile << "<users>" << endl;
-    for(User* u : users_) {
-        u->dump(ofile);
+    ofile << "<users>" << std::endl;
+    for(size_t j = 0; j < users_.size(); j++) {
+        users_[j]->dump(ofile);
     }
-    ofile << "</users>" << endl;
+    ofile << "</users>" << std::endl;
 }
 
 bool MyDataStore::addToCart(const std::string& uname, Product* p)
 {
-    // look for lowercase uname
     string lower = uname;
     for(size_t i = 0; i < lower.size(); i++) {
         lower[i] = tolower(lower[i]);
     }
 
     if(carts_.find(lower) == carts_.end()) {
-        return false; // invalid username
+        return false;
     }
     carts_[lower].push_back(p);
     return true;
@@ -124,7 +116,7 @@ bool MyDataStore::viewCart(const std::string& uname)
     }
 
     if(carts_.find(lower) == carts_.end()) {
-        return false; // invalid username
+        return false; 
     }
 
     vector<Product*>& cart = carts_[lower];
@@ -144,10 +136,9 @@ bool MyDataStore::buyCart(const std::string& uname)
     }
 
     if(carts_.find(lower) == carts_.end()) {
-        return false; // invalid username
+        return false; 
     }
 
-    // find matching User* object
     User* buyer = NULL;
     for(size_t i = 0; i < users_.size(); i++) {
         string u = users_[i]->getName();
@@ -162,7 +153,7 @@ bool MyDataStore::buyCart(const std::string& uname)
     if(buyer == NULL) return false;
 
     vector<Product*>& cart = carts_[lower];
-    vector<Product*> remaining; // products we couldn’t buy
+    vector<Product*> remaining; 
 
     for(size_t i = 0; i < cart.size(); i++) {
         Product* p = cart[i];
@@ -175,6 +166,6 @@ bool MyDataStore::buyCart(const std::string& uname)
         }
     }
 
-    cart = remaining; // only keep items that couldn’t be bought
+    cart = remaining; 
     return true;
 }

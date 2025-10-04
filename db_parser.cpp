@@ -53,7 +53,7 @@ bool DBParser::parse(string db_filename, DataStore& ds)
 #ifdef DEBUG
         cout << "Line: " << line << endl;
 #endif
-        trim(line); // remove whitespace on either end
+        trim(line);
         if(state == FIND_SECTION) {
             if((line.size() > 2) && line[0] == '<' && line[line.size()-1] == '>') {
                 state = IN_SECTION;

@@ -1,7 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <cctype>
-//#include <algorithm>
+#include <algorithm>
 #include "util.h"
 
 using namespace std;
