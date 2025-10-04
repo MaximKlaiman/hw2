@@ -4,13 +4,14 @@
 #include <sstream>
 #include <vector>
 #include <iomanip>
-#include <algorithm>
 #include "product.h"
 #include "db_parser.h"
 #include "product_parser.h"
 #include "util.h"
+#include "mydatastore.h"
 
 using namespace std;
+
 struct ProdNameSorter {
     bool operator()(Product* p1, Product* p2) {
         return (p1->getName() < p2->getName());
@@ -26,14 +27,11 @@ int main(int argc, char* argv[])
     }
 
     /****************
-     * Declare your derived DataStore object here replacing
-     *  DataStore type to your derived type
+     * Use derived DataStore
      ****************/
-    DataStore ds;
+    DataStore* ds = new MyDataStore();
 
-
-
-    // Instantiate the individual section and product parsers we want
+    // Instantiate the individual section and product parsers
     ProductSectionParser* productSectionParser = new ProductSectionParser;
     productSectionParser->addProductParser(new ProductBookParser);
     productSectionParser->addProductParser(new ProductClothingParser);
@@ -45,9 +43,10 @@ int main(int argc, char* argv[])
     parser.addSectionParser("products", productSectionParser);
     parser.addSectionParser("users", userSectionParser);
 
-    // Now parse the database to populate the DataStore
-    if( parser.parse(argv[1], ds) ) {
+    // Parse database
+    if( parser.parse(argv[1], *ds) ) {
         cerr << "Error parsing!" << endl;
+        delete ds;
         return 1;
     }
 
@@ -77,7 +76,7 @@ int main(int argc, char* argv[])
                     term = convToLower(term);
                     terms.push_back(term);
                 }
-                hits = ds.search(terms, 0);
+                hits = ds->search(terms, 0);
                 displayProducts(hits);
             }
             else if ( cmd == "OR" ) {
@@ -87,29 +86,65 @@ int main(int argc, char* argv[])
                     term = convToLower(term);
                     terms.push_back(term);
                 }
-                hits = ds.search(terms, 1);
+                hits = ds->search(terms, 1);
                 displayProducts(hits);
+            }
+            else if ( cmd == "ADD") {
+                string username;
+                int hitNum;
+                if(!(ss >> username >> hitNum)) {
+                    cout << "Invalid request" << endl;
+                }
+                else if(hitNum <= 0 || hitNum > (int)hits.size()) {
+                    cout << "Invalid request" << endl;
+                }
+                else {
+                    MyDataStore* mds = dynamic_cast<MyDataStore*>(ds);
+                    if(!mds->addToCart(convToLower(username), hits[hitNum-1])) {
+                        cout << "Invalid request" << endl;
+                    }
+                }
+            }
+            else if ( cmd == "VIEWCART") {
+                string username;
+                if(!(ss >> username)) {
+                    cout << "Invalid username" << endl;
+                }
+                else {
+                    MyDataStore* mds = dynamic_cast<MyDataStore*>(ds);
+                    if(!mds->viewCart(convToLower(username))) {
+                        cout << "Invalid username" << endl;
+                    }
+                }
+            }
+            else if ( cmd == "BUYCART") {
+                string username;
+                if(!(ss >> username)) {
+                    cout << "Invalid username" << endl;
+                }
+                else {
+                    MyDataStore* mds = dynamic_cast<MyDataStore*>(ds);
+                    if(!mds->buyCart(convToLower(username))) {
+                        cout << "Invalid username" << endl;
+                    }
+                }
             }
             else if ( cmd == "QUIT") {
                 string filename;
                 if(ss >> filename) {
                     ofstream ofile(filename.c_str());
-                    ds.dump(ofile);
+                    ds->dump(ofile);
                     ofile.close();
                 }
                 done = true;
             }
-	    /* Add support for other commands here */
-
-
-
-
             else {
                 cout << "Unknown command" << endl;
             }
         }
-
     }
+
+    delete ds;
     return 0;
 }
 

@@ -14,20 +14,40 @@ template <typename T>
 std::set<T> setIntersection(std::set<T>& s1, std::set<T>& s2)
 {
 
-
-
-
-
+    std::set<T> intersect;
+    typename std::set<T>::iterator it = s1.begin();
+    //typename std::set<T>::iterator it2 = s2.begin();
+    while(s1.end() != it) {
+        if(s2.find(*it)!=s2.end())
+        {
+            intersect.insert(*it);
+        }
+        it++;
+    }
+    return intersect;
 }
 template <typename T>
 std::set<T> setUnion(std::set<T>& s1, std::set<T>& s2)
 {
 
-
-
-
-
+    std::set<T> uniontoreturn;
+    typename std::set<T>::iterator it = s1.begin();
+    typename std::set<T>::iterator it2 = s2.begin();
+    while(s1.end() != it || s2.end() != it2) {
+       if(it != s1.end()){ //&& uniontoreturn.find(*it)==uniontoreturn.end()){
+           uniontoreturn.insert(*it);
+           it++;
+       }
+       if(it2 != s2.end()){ //&& uniontoreturn.find(*it2)==uniontoreturn.end()){
+           uniontoreturn.insert(*it2);
+           it2++;
+       }
+    }
+        return uniontoreturn;
 }
+
+
+
 
 /***********************************************/
 /* Prototypes of functions defined in util.cpp */
